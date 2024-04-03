@@ -1,0 +1,28 @@
+version: '3'
+
+dotenv: ['.env']
+
+tasks:
+  test:
+    desc: Run tests
+    cmds:
+      - poetry run pytest -v --show-capture=all
+
+  bash-triton:
+    desc: Run bash in triton
+    cmds:
+      - docker run -it --rm nvcr.io/nvidia/tritonserver:24.01-py3 bash
+
+  clean-pycache:
+    desc: Clean __pycache__ 
+    cmds:
+      - find . ! -path "*/.venv/*" -name "__pycache__" -exec rm -rv {} +
+
+  clean-pytest:
+    desc: Clean pytest cache
+    cmds:
+      - find . -name ".pytest_cache" -exec rm -rv {} +
+
+  clean-all:
+    desc: Clean all
+    deps: [clean-pycache, clean-pytest]

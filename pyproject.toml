@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "triton-testcontainer"
+version = "0.1.0"
+description = "Testcontainers module for Nvidia Triton"
+authors = ["Oleksandr Popovych <ogvalt@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+testcontainers = "^4.3.1"
+tritonclient = {extras = ["all"], version = "^2.44.0"}
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.1.1"
+pytest-datadir = "^1.5.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+log_cli = false
+log_cli_level = "info"
+pythonpath = [
+  "."
+]
