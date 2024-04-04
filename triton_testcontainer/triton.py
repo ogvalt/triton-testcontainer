@@ -1,3 +1,6 @@
+from typing import TypedDict
+from typing_extensions import NotRequired
+
 import docker.types
 import geventhttpclient
 
@@ -16,6 +19,12 @@ DEFAULT_TRITON_CONTAINER_COMMAND = TritonCommand(
     model_control_mode="explicit"
     ).build()
 
+
+class VolumeMapping(TypedDict):
+    host: str
+    container: str
+    mode: NotRequired[str]
+
 class TritonContainer(DockerContainer):
     """
     Triton Container
@@ -26,6 +35,7 @@ class TritonContainer(DockerContainer):
             tag: str = "24.01-py3",
             name: str = "tritonserver", 
             with_gpus: bool = True,
+            volume_mapping: list[VolumeMapping] | None = None,
             command: str = DEFAULT_TRITON_CONTAINER_COMMAND,
             **kwargs        
             ) -> None:
@@ -35,6 +45,15 @@ class TritonContainer(DockerContainer):
         self.with_exposed_ports(TRITON_HTTP_PORT, TRITON_GRPC_PORT, TRITON_METRICS_PORT)
         self.with_command(command)
         self.with_name(name)
+
+        if volume_mapping:
+            for mapping in volume_mapping:
+                self.with_volume_mapping(
+                    host=mapping["host"], 
+                    container=mapping["container"], 
+                    mode=mapping.get("mode", "ro")
+                )
+            
         if with_gpus:
             self.with_kwargs(
                 device_requests=[docker.types.DeviceRequest(count=-1, capabilities=[["gpu"]])]

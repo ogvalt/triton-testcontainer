@@ -62,12 +62,3 @@ class TritonCommand(BaseModel):
                 raise TypeError("Unsupported")
 
         self._command += f" {option}"
-
-
-if __name__ == "__main__":
-    cmd = TritonCommand(
-        model_repository=["/workspace", "/home"], 
-        model_control_mode="explicit", 
-        load_model=["simple", "hard"],
-    )
-    print(cmd.build())
