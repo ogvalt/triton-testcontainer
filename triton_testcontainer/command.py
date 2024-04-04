@@ -2,41 +2,72 @@
 This module contains the class TritonCommand that implements generation of
 valid tritonserver cli command using Builder pattern.
 """
+from typing import Literal
+from pydantic import BaseModel, Field, ConfigDict
 
-MODEL_CONTROL_MODE = ("none", "poll", "explicit")
-
-class TritonCommand:
+class TritonCommand(BaseModel):
     """
     This class implements generation of valid tritonserver cli command using
     Builder pattern.
     """
-    def __init__(self, model_repository: str | list[str] = "/workspace"):
-         """
-         Initialize the TritonCommand object.
-         """
-         self._command = "tritonserver"
-         self.set_model_repository(model_repository)
+    model_config = ConfigDict(protected_namespaces=())
+
+    _command: str = "tritonserver"
+
+    # Logging
+    log_verbose: None | int = None
+    log_info:    None | Literal[0, 1] = None
+    log_warning: None | Literal[0, 1] = None
+    log_error:   None | Literal[0, 1] = None
+    log_format:  None | str = None
+    log_file:    None | str = None
+
+    # Model Repository
+    model_store: None | list[str] = None
+    model_repository: list[str] = Field(default_factory=lambda: ["/workspace"])
+
+    exit_on_error: None | Literal[0, 1] = None
+    # disable_auto_complete_config: None | Literal[True] = None
+    strict_readiness: None | Literal[0, 1] = None
+    model_control_mode: Literal["none", "poll", "explicit"] = "none"
+
+    repository_pool_secs: None | int = None
+
+    load_model: None | Literal["*"] | str | list[str] = None
+    model_load_retry_count: None | int = None
+    # model_namespacing: None | Literal[True] = None
+
+    # HTTP
+    # allow_http: None | Literal[True] = None
+
+    # GRPS
+    # allow_grpc: None | Literal[True] = None
 
     def build(self):
-        return self.command
+        for fld, val in iter(self):
+            self._append_option(fld, val)
+        return self._command
     
-    def _append_option(self, value: str):
-        self.command += f" {value}"
+    def _append_option(self, name: str, value: str | list[str]):
+        _name = name.replace("_", "-")
 
-    def set_model_repository(self, model_repository: str | list[str]):
-        match model_repository:
+        match value:
             case str():
-                value = f"--model-repository={model_repository}"
+                option = f"--{_name}={value}"
             case list():
-                value = " ".join(
-                    [f"--model-repository={path}" for path in model_repository]
-                )
+                option = " ".join([f"--{_name}={v}" for v in value])
+            case None:
+                return
             case _:
                 raise TypeError("Unsupported")
 
-        self._append_option(value)
+        self._command += f" {option}"
 
-    def set_model_control_mode(self, model_control_mode: str):
-        if model_control_mode not in MODEL_CONTROL_MODE:
-            raise ValueError(f"Invalid model control mode: {model_control_mode}, allowed: {MODEL_CONTROL_MODE}")
-        self._append_option(f"--model-control-mode={model_control_mode}")    
+
+if __name__ == "__main__":
+    cmd = TritonCommand(
+        model_repository=["/workspace", "/home"], 
+        model_control_mode="explicit", 
+        load_model=["simple", "hard"],
+    )
+    print(cmd.build())

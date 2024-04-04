@@ -6,10 +6,15 @@ import tritonclient.http as tritonhttpclient
 from testcontainers.core.container import DockerContainer
 from testcontainers.core.waiting_utils import wait_container_is_ready
 
+from .command import TritonCommand
+
 TRITON_HTTP_PORT = 8000
 TRITON_GRPC_PORT = 8001
 TRITON_METRICS_PORT = 8002
-DEFAULT_TRITON_CONTAINER_COMMAND = f"tritonserver --model-repository=/home --model-control-mode=explicit"
+DEFAULT_TRITON_CONTAINER_COMMAND = TritonCommand(
+    model_repository=["/home"], 
+    model_control_mode="explicit"
+    ).build()
 
 class TritonContainer(DockerContainer):
     """
