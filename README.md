@@ -1,4 +1,4 @@
-# Triron Testcontainer
+# Triton Testcontainer
 
 This is an implementation of testcontainers module for Nvidia Triton.
 
