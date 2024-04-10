@@ -16,7 +16,7 @@ TRITON_GRPC_PORT = 8001
 TRITON_METRICS_PORT = 8002
 DEFAULT_TRITON_CONTAINER_COMMAND = TritonCommand(
     model_repository=["/home"], 
-    model_control_mode="explicit"
+    model_control_mode="explicit",
     ).build()
 
 

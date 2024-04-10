@@ -5,8 +5,6 @@ valid tritonserver cli command using Builder pattern.
 from typing import Literal, TypeAlias, TypeVar
 from pydantic import BaseModel, Field, ConfigDict
 
-
-# FlagType: TypeAlias = None | Literal[True] | Literal[1]
 FlagType = TypeVar("FlagType", None, Literal[True])
 
 class TritonCommand(BaseModel):
@@ -86,10 +84,7 @@ class TritonCommand(BaseModel):
 
         match value:
             case bool():
-                if "FlagType" in annotation:
-                    option = f"--{_name}"
-                else:
-                    option = f"--{_name}={int(value)}"
+                option = f"--{_name}" if "FlagType" in annotation else f"--{_name}={int(value)}"
             case str() | int():
                 option = f"--{_name}={value}"
             case list():

@@ -14,7 +14,16 @@ def test_triton_container(datadir: pathlib.Path):
     model_name = "simple"
 
     cmd = TritonCommand(
+        id="test",
+        exit_timeout_secs=120,
+        log_verbose=6,
+        log_info=True,
+        log_warning=True,
+        log_error=True,
         model_repository=[example_model_repository],
+        exit_on_error=True,
+        disable_auto_complete_config=True,
+        strict_readiness=True,
         model_control_mode="explicit",
         load_model=model_name,
     ).build()
