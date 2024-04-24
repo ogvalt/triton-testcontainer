@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "triton-testcontainer"
-version = "0.2.0"
+version = "0.3.0"
 description = "Testcontainers module for Nvidia Triton"
 authors = ["Oleksandr Popovych <ogvalt@gmail.com>"]
 license = "MIT"
