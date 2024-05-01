@@ -6,7 +6,7 @@ tasks:
   test:
     desc: Run tests
     cmds:
-      - poetry run pytest -v --show-capture=all
+      - poetry run pytest -v --show-capture=all --doctest-modules
 
   bash-triton:
     desc: Run bash in triton
