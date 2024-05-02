@@ -7,7 +7,7 @@ Package helps you use Docker containers for testing purposes.
 # Installation
 
 ```bash
-pip3 install git+https://github.com/ogvalt/triton-testcontainer.git@v0.3.0
+pip3 install git+https://github.com/ogvalt/triton-testcontainer.git@v0.4.0
 ```
 
 # Usage
