@@ -38,16 +38,13 @@ def test_example(setup_triton):
     assert True
 
 def test_example_two():
-    cmd = tritoncontainer.TritonCommand(model_repository=["/models"]).build()
+    cmd = tritoncontainer.TritonCommand(model_repository=["/models"]).build() # command to run tritonserver with
 
-    maps = [
-        {
-            "host": "/path/to/repository",
-            "container": "/models"
-        },
-    ]
+    maps = [{"host": "/path/to/repository", "container": "/models"}] # map repository on host to container
 
-    with TritonContainer(with_gpus=True, volume_mapping=maps, command=cmd) as service:
+    # use context manager to run container on __enter__ and stop it on __exit__
+    with TritonContainer(with_gpus=True, volume_mapping=maps, command=cmd) as service:  
         triton_client = service.get_client()
         assert True
+        
 ```
