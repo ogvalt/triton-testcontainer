@@ -36,4 +36,18 @@ def setup_triton(request):
 def test_example(setup_triton):
     triton_client: 'tritonclient.http.InferenceServerClient' = setup_triton
     assert True
+
+def test_example_two():
+    cmd = tritoncontainer.TritonCommand(model_repository=["/models"]).build()
+
+    maps = [
+        {
+            "host": "/path/to/repository",
+            "container": "/models"
+        },
+    ]
+
+    with TritonContainer(with_gpus=True, volume_mapping=maps, command=cmd) as service:
+        triton_client = service.get_client()
+        assert True
 ```
