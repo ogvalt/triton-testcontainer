@@ -68,3 +68,10 @@ def test_triton_container(datadir: pathlib.Path):
         assert triton_client.is_model_ready(model_name, model_version="1")
         np.testing.assert_array_equal(output0_data, np.ones([8, 16], dtype=np.int32))
         np.testing.assert_array_equal(output1_data, np.ones([8, 16], dtype=np.int32))
+
+
+def test_get_url():
+    with TritonContainer(with_gpus=False) as triton_container:
+        assert triton_container.get_url("http") == f"localhost:{triton_container.get_exposed_port(8000)}"
+        assert triton_container.get_url("grpc") == f"localhost:{triton_container.get_exposed_port(8001)}"
+        assert triton_container.get_url("metrics") == f"localhost:{triton_container.get_exposed_port(8002)}"
