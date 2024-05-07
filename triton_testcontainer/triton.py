@@ -1,4 +1,4 @@
-from typing import TypedDict
+from typing import TypedDict, Literal
 from typing_extensions import NotRequired
 
 import docker.types
@@ -58,6 +58,20 @@ class TritonContainer(DockerContainer):
             self.with_kwargs(
                 device_requests=[docker.types.DeviceRequest(count=-1, capabilities=[["gpu"]])]
             )
+
+    def get_url(self, port_name: Literal["http"] | Literal["grpc"] | Literal["metrics"] = "http") -> str:
+
+        match port_name:
+            case "http":
+                port = TRITON_HTTP_PORT
+            case "grpc":
+                port = TRITON_GRPC_PORT
+            case "metrics":
+                port = TRITON_METRICS_PORT
+            case _:
+                raise ValueError(f"Unknown port name {port_name}")
+            
+        return f"{self.get_container_host_ip()}:{self.get_exposed_port(port)}"
 
     def get_client(self) -> tritonhttpclient.InferenceServerClient:
 

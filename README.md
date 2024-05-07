@@ -7,7 +7,7 @@ Package helps you use Docker containers for testing purposes.
 # Installation
 
 ```bash
-pip3 install git+https://github.com/ogvalt/triton-testcontainer.git@v0.4.0
+pip3 install git+https://github.com/ogvalt/triton-testcontainer.git@v0.5.0
 ```
 
 # Usage
@@ -43,7 +43,7 @@ def test_example_two():
     maps = [{"host": "/path/to/repository", "container": "/models"}] # map repository on host to container
 
     # use context manager to run container on __enter__ and stop it on __exit__
-    with TritonContainer(with_gpus=True, volume_mapping=maps, command=cmd) as service:  
+    with tritoncontainer.TritonContainer(with_gpus=True, volume_mapping=maps, command=cmd) as service:  
         triton_client = service.get_client()
         assert True
         
