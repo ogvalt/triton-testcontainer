@@ -1,22 +1,21 @@
 # Triton Testcontainer
 
-This is an implementation of testcontainers module for Nvidia Triton.
+This package started as an implementation of testcontainer module for Nvidi Triton, but also added other functionality that extends beyond simply running containers withing pytest.
 
-Package helps you use Docker containers for testing purposes.
+## Usage
 
-# Installation
+This package provides several functions:
+* triton container (class `TritonContainer`): manage tritonserver container within a testsuite.
+
+* dockerfile builder (class `DockerfileBuilder`): Dockerfile DSL for generating dockerfiles programatically.
+
+* docker image builder (class `ImageBuilder`): Builing images on fly, e.g. within a testsuite.
+
+## Installation
 
 ```bash
 pip3 install git+https://github.com/ogvalt/triton-testcontainer.git@v0.6.0
 ```
-
-# Usage
-
-This package provides several functions:
-
-    - triton container (class `TritonContainer`)
-    - dockerfile builder (class `DockerfileBuilder`)
-    - docker image builder (class `ImageBuilder`)
     
 ## Examples
 
