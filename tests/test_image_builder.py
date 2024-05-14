@@ -29,7 +29,7 @@ def test_from_path(tmp_path):
 
     builder = ImageBuilder()
 
-    image, build_log = builder.from_path(context=str(tmp_path), path_to_dockerfile=str(path_to_dockerfile))
+    image = builder.from_path(context=str(tmp_path), path_to_dockerfile=str(path_to_dockerfile)).build()
 
     assert_container_run(image.tags[0], predicate)
 
@@ -45,8 +45,19 @@ def test_from_string(tmp_path):
 
     builder = ImageBuilder()
 
-    image, build_log = builder.from_string(context=str(tmp_path), string_dockerfile=dockerfile)
+    image = builder.from_string(context=str(tmp_path), string_dockerfile=dockerfile).build()
 
     assert_container_run(image.tags[0], predicate)
 
     builder.remove()
+
+
+def test_context_manager(tmp_path):
+    predicate = "ImageBuilder.from_string"
+    dockerfile = (DockerfileBuilder() \
+                  .from_("ubuntu:20.04") \
+                  .cmd("echo", predicate)
+                  .build())
+
+    with (ImageBuilder(reuse=False).from_string(context=str(tmp_path), string_dockerfile=dockerfile).ctx_manager()) as image:
+        assert_container_run(image.tags[0], predicate)
