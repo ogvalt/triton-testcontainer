@@ -44,7 +44,9 @@ class ImageBuilder:
             docker_client_kw: Optional[dict] = None,
             tag: str = "localhost/image_builder:latest",
     ):
+
         self._docker = DockerClient(**(docker_client_kw or {}))
+        self._image = None
         self.tag = tag
 
     def get_docker_client(self) -> DockerClient:
@@ -84,6 +86,12 @@ class ImageBuilder:
         )
 
         if isinstance(result, Image):
+            self._image = result
             return result, None
 
+        self._image = result[0]
         return result
+
+    @functools.wraps(Image.remove)
+    def remove(self, force=False, noprune=False):
+        return self._image.remove(force, noprune)

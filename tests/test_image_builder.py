@@ -11,15 +11,14 @@ def assert_container_run(image: str, predicate: str, timeout: int = 30):
     from testcontainers.core.container import DockerContainer
     from testcontainers.core.waiting_utils import wait_for_logs
 
-    with DockerContainer(image) as container:
+    with DockerContainer(image).with_name("pytest") as container:
         delay = wait_for_logs(container, predicate, timeout)
 
     assert True
 
 
 def test_from_path(tmp_path):
-    predicate = "test ImageBuilder().from_path"
-
+    predicate = "ImageBuilder.from_path"
     dockerfile = (DockerfileBuilder() \
                   .from_("ubuntu:20.04") \
                   .cmd("echo", predicate)
@@ -28,19 +27,26 @@ def test_from_path(tmp_path):
     path_to_dockerfile = tmp_path / "Dockerfile"
     path_to_dockerfile.write_text(dockerfile)
 
-    image, _ = ImageBuilder().from_path(context=str(tmp_path), path_to_dockerfile=str(path_to_dockerfile))
+    builder = ImageBuilder()
+
+    image, build_log = builder.from_path(context=str(tmp_path), path_to_dockerfile=str(path_to_dockerfile))
 
     assert_container_run(image.tags[0], predicate)
 
+    builder.remove()
+
 
 def test_from_string(tmp_path):
-    predicate = "test ImageBuilder().from_string"
-
+    predicate = "ImageBuilder.from_string"
     dockerfile = (DockerfileBuilder() \
                   .from_("ubuntu:20.04") \
                   .cmd("echo", predicate)
                   .build())
 
-    image, build_log = ImageBuilder().from_string(context=str(tmp_path), string_dockerfile=dockerfile)
+    builder = ImageBuilder()
+
+    image, build_log = builder.from_string(context=str(tmp_path), string_dockerfile=dockerfile)
 
     assert_container_run(image.tags[0], predicate)
+
+    builder.remove()
