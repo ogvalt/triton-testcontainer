@@ -1,6 +1,5 @@
 import logging
 
-
 logger = logging.getLogger("triton_testcontainer")
 
 
@@ -33,11 +32,11 @@ class DockerfileBuilder:
 
     def __init__(self) -> None:
         self._dockerfile: list[str] = []
-    
-    def build(self) -> str: 
+
+    def build(self) -> str:
         return """{}""".format("\n".join(self._dockerfile))
 
-    def syntax(self, remote_image_reference: str = "docker/dockerfile:1") -> "DockerfileBuilder": 
+    def syntax(self, remote_image_reference: str = "docker/dockerfile:1") -> "DockerfileBuilder":
         """Insert syntax directive
 
         >>> DockerfileBuilder().syntax().build()
@@ -47,19 +46,17 @@ class DockerfileBuilder:
         directive = f"{self.SYNTAX_PARSER_DIRECTIVE}{remote_image_reference}"
         self._dockerfile.insert(0, directive)
         return self
-    
+
     # def escape(self, escape_char: Literal[r'\\'] | Literal[r"`"] | None) -> "DockerfileBuilder":
     #     """Insert escape directive
 
     #     >>> DockerfileBuilder().escape('\u005C').build()
     #     '# escape=\u005C'
-        
-        
 
     #     """
     #     if escape_char is None:
     #         return self
-        
+
     #     if len(self._dockerfile) == 0:
     #         insert_position = 0
     #     else:
@@ -69,7 +66,7 @@ class DockerfileBuilder:
     #     self._dockerfile.insert(insert_position, directive)
 
     #     return self
-    
+
     def append_user_instruction(self, user_instruction: str) -> "DockerfileBuilder":
         """Append user instuction
 
@@ -77,22 +74,22 @@ class DockerfileBuilder:
         'FROM ubuntu:20.04 AS stage'
 
         """
-        
+
         self._dockerfile.append(user_instruction)
 
         return self
-    
-    def add(self, 
-            src: str = "", 
-            dest: str = "", 
-            keep_git_dir: bool = False, 
-            checksum: str = "", 
-            chown: str = "", 
-            chmod: str = "", 
-            link: bool = False, 
+
+    def add(self,
+            src: str = "",
+            dest: str = "",
+            keep_git_dir: bool = False,
+            checksum: str = "",
+            chown: str = "",
+            chmod: str = "",
+            link: bool = False,
             exclude: list[str] = None,
             user_directive: str = "",
-            ) -> "DockerfileBuilder": 
+            ) -> "DockerfileBuilder":
         """Append ADD instruction
 
         >>> DockerfileBuilder().add(src="file.txt", dest="/file.txt").build()
@@ -130,10 +127,10 @@ class DockerfileBuilder:
         if user_directive:
             self._dockerfile.append(f"ADD {user_directive}")
             return self
-        
+
         if not src or not dest:
             raise SyntaxError("ADD: you must either specify (src, dest) or (user_directive)")
-        
+
         if exclude is None:
             exclude = []
 
@@ -162,10 +159,10 @@ class DockerfileBuilder:
 
         str_directive = f"ADD {' '.join(directive)}"
 
-        self._dockerfile.append(str_directive)    
+        self._dockerfile.append(str_directive)
         return self
-    
-    def arg(self, name: str, default: str = "") -> "DockerfileBuilder": 
+
+    def arg(self, name: str, default: str = "") -> "DockerfileBuilder":
         """Append ARG instruction
 
         >>> DockerfileBuilder().arg(name="VAR").build()
@@ -181,8 +178,8 @@ class DockerfileBuilder:
             self._dockerfile.append(f"ARG {name}")
 
         return self
-        
-    def cmd(self, executable: str = "", *params) -> "DockerfileBuilder": 
+
+    def cmd(self, executable: str = "", *params) -> "DockerfileBuilder":
         """Append CMD instruction
 
         >>> DockerfileBuilder().cmd("echo", "hello world").build()
@@ -200,8 +197,8 @@ class DockerfileBuilder:
         self._dockerfile.append(str_directive)
 
         return self
-    
-    def copy(self, 
+
+    def copy(self,
              src: str = "",
              dest: str = "",
              from_: str = "",
@@ -211,7 +208,7 @@ class DockerfileBuilder:
              parents: bool = False,
              exclude: list[str] = None,
              user_directive: str = "",
-             ) -> "DockerfileBuilder": 
+             ) -> "DockerfileBuilder":
         """Append COPY instruction
 
         >>> DockerfileBuilder().copy(src="file.txt", dest="/file.txt").build()
@@ -249,10 +246,10 @@ class DockerfileBuilder:
         if user_directive:
             self._dockerfile.append(f"COPY {user_directive}")
             return self
-        
+
         if not src or not dest:
             raise SyntaxError("ADD: you must either specify (src, dest) or (user_directive)")
-        
+
         if exclude is None:
             exclude = []
 
@@ -281,10 +278,10 @@ class DockerfileBuilder:
 
         str_directive = f"COPY {' '.join(directive)}"
 
-        self._dockerfile.append(str_directive)    
+        self._dockerfile.append(str_directive)
         return self
-    
-    def entrypoint(self, executable: str = "", *params) -> "DockerfileBuilder": 
+
+    def entrypoint(self, executable: str = "", *params) -> "DockerfileBuilder":
         """Append ENTRYPOINT instruction
 
         >>> DockerfileBuilder().entrypoint("echo", "hello world").build()
@@ -302,7 +299,8 @@ class DockerfileBuilder:
         self._dockerfile.append(str_directive)
 
         return self
-    def env(self, key: str = "", value: str = "", user_directive: str = "") -> "DockerfileBuilder": 
+
+    def env(self, key: str = "", value: str = "", user_directive: str = "") -> "DockerfileBuilder":
         """Append ENV instruction
 
         >>> DockerfileBuilder().env(key="key", value="value").build()
@@ -323,8 +321,8 @@ class DockerfileBuilder:
 
         self._dockerfile.append(str_directive)
         return self
-    
-    def expose(self, port: int | str, protocol: str = "") -> "DockerfileBuilder": 
+
+    def expose(self, port: int | str, protocol: str = "") -> "DockerfileBuilder":
         """Append EXPOSE instruction
 
         >>> DockerfileBuilder().expose(port=80).build()
@@ -345,11 +343,11 @@ class DockerfileBuilder:
 
         return self
 
-    def from_(self, image: str = "ubuntu:20.04", 
-              platform: str = "", 
-              as_name: str = "", 
+    def from_(self, image: str = "ubuntu:20.04",
+              platform: str = "",
+              as_name: str = "",
               user_directive: str = ""
-              ) -> "DockerfileBuilder": 
+              ) -> "DockerfileBuilder":
         """Append FROM instruction
 
         >>> DockerfileBuilder().from_(image="ubuntu:20.04", platform="aarch64", as_name="stage").build()
@@ -363,7 +361,7 @@ class DockerfileBuilder:
         if user_directive:
             self._dockerfile.append(f"FROM {user_directive}")
             return self
-        
+
         directive: list[str] = []
 
         if platform:
@@ -371,7 +369,7 @@ class DockerfileBuilder:
 
         if not image:
             raise SyntaxError("image is required argument in 'FROM' instruction")
-        
+
         directive.append(image)
 
         if as_name:
@@ -383,7 +381,6 @@ class DockerfileBuilder:
 
         return self
 
-
     def healthcheck(self,
                     disable: bool = False,
                     command: str = "",
@@ -392,7 +389,7 @@ class DockerfileBuilder:
                     start_period: str = "0s",
                     retries: int | None = 3,
                     user_directive: str = ""
-                    ) -> "DockerfileBuilder": 
+                    ) -> "DockerfileBuilder":
         """Append HEALTHCHECK instruction
 
         >>> DockerfileBuilder().healthcheck(disable=True).build()
@@ -408,7 +405,7 @@ class DockerfileBuilder:
         if user_directive:
             self._dockerfile.append(f"HEALTHCHECK {user_directive}")
             return self
-        
+
         if disable:
             self._dockerfile.append("HEALTHCHECK NONE")
             return self
@@ -429,7 +426,7 @@ class DockerfileBuilder:
 
         if not command:
             raise SyntaxError("HEALTHCHECK: you should either specify (disable=True) or (command) or (user_directive)")
-        
+
         directive.append(command)
 
         str_directive = f"HEALTHCHECK {' '.join(directive)}"
@@ -437,9 +434,7 @@ class DockerfileBuilder:
 
         return self
 
-
-
-    def label(self, key: str = "", value: str = "", user_directive: str = "") -> "DockerfileBuilder": 
+    def label(self, key: str = "", value: str = "", user_directive: str = "") -> "DockerfileBuilder":
         """Append LABEL instruction
 
         >>> DockerfileBuilder().label(key="version", value="1.0.0").build()
@@ -455,14 +450,14 @@ class DockerfileBuilder:
 
         if not key or not value:
             raise SyntaxError("LABEL: you must either specify (key, value) or (user_directive)")
-        
+
         directive = f"{key}={value}"
 
         self._dockerfile.append(f"LABEL {directive}")
 
         return self
-    
-    def maintainer(self, name: str) -> "DockerfileBuilder": 
+
+    def maintainer(self, name: str) -> "DockerfileBuilder":
         """Append MAINTAINER instruction
 
         >>> DockerfileBuilder().maintainer(name="oleksandr").build()
@@ -472,9 +467,10 @@ class DockerfileBuilder:
         logger.warning("maintainer is deprecated. Use LABEL instead.")
 
         self._dockerfile.append(f"MAINTAINER {name}")
-        
+
         return self
-    def onbuild(self, user_directive: str) -> "DockerfileBuilder": 
+
+    def onbuild(self, user_directive: str) -> "DockerfileBuilder":
         """Append ONBUILD instruction
 
         >>> DockerfileBuilder().onbuild("RUN /usr/local/bin/python-build --dir /app/src").build()
@@ -485,13 +481,13 @@ class DockerfileBuilder:
 
         return self
 
-    def run(self, 
-            *args, 
-            mount: str = "", 
-            network: str = "", 
-            security: str = "",  
+    def run(self,
+            *args,
+            mount: str = "",
+            network: str = "",
+            security: str = "",
             user_directive: str = ""
-            ) -> "DockerfileBuilder": 
+            ) -> "DockerfileBuilder":
         """Append RUN instruction
 
         >>> DockerfileBuilder().run("echo", "hello world", mount="type=bind,source=/tmp,target=/tmp").build()
@@ -516,7 +512,7 @@ class DockerfileBuilder:
         if user_directive:
             self._dockerfile.append(f"RUN {user_directive}")
             return self
-        
+
         directive: list[str] = []
 
         if mount:
@@ -530,7 +526,7 @@ class DockerfileBuilder:
 
         if not args:
             raise SyntaxError("args is required argument in 'RUN' instruction")
-        
+
         directive.append(" ".join(args))
 
         str_directive = f"RUN {' '.join(directive)}"
@@ -539,7 +535,7 @@ class DockerfileBuilder:
 
         return self
 
-    def shell(self, executable: str, parameters: list[str]) -> "DockerfileBuilder": 
+    def shell(self, executable: str, parameters: list[str]) -> "DockerfileBuilder":
         """Append SHELL instruction
 
         >>> DockerfileBuilder().shell(executable="/bin/bash", parameters=["-c"]).build()
@@ -559,8 +555,8 @@ class DockerfileBuilder:
         self._dockerfile.append(str_directive)
 
         return self
-    
-    def stopsignal(self, signal: str) -> "DockerfileBuilder": 
+
+    def stopsignal(self, signal: str) -> "DockerfileBuilder":
         """Append STOPSIGNAL instruction
 
         >>> DockerfileBuilder().stopsignal(signal="SIGKILL").build()
@@ -573,8 +569,8 @@ class DockerfileBuilder:
         self._dockerfile.append(f"STOPSIGNAL {signal}")
 
         return self
-    
-    def user(self, user: str, group: str = "") -> "DockerfileBuilder": 
+
+    def user(self, user: str, group: str = "") -> "DockerfileBuilder":
         """Append USER instruction
 
         >>> DockerfileBuilder().user(user="root").build()
@@ -590,8 +586,8 @@ class DockerfileBuilder:
             self._dockerfile.append(f"USER {user}")
 
         return self
-    
-    def volume(self, name: str) -> "DockerfileBuilder": 
+
+    def volume(self, name: str) -> "DockerfileBuilder":
         """Append VOLUME instruction
 
         >>> DockerfileBuilder().volume(name="data").build()
@@ -601,7 +597,7 @@ class DockerfileBuilder:
         self._dockerfile.append(f"VOLUME {name}")
 
         return self
-    
+
     def workdir(self, path: str) -> "DockerfileBuilder":
         """Append WORKDIR instruction
 
@@ -612,6 +608,3 @@ class DockerfileBuilder:
         self._dockerfile.append(f"WORKDIR {path}")
 
         return self
-
-
-

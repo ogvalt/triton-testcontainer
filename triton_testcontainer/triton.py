@@ -15,9 +15,9 @@ TRITON_HTTP_PORT = 8000
 TRITON_GRPC_PORT = 8001
 TRITON_METRICS_PORT = 8002
 DEFAULT_TRITON_CONTAINER_COMMAND = TritonCommand(
-    model_repository=["/home"], 
+    model_repository=["/home"],
     model_control_mode="explicit",
-    ).build()
+).build()
 
 
 class VolumeMapping(TypedDict):
@@ -25,20 +25,22 @@ class VolumeMapping(TypedDict):
     container: str
     mode: NotRequired[str]
 
+
 class TritonContainer(DockerContainer):
     """
     Triton Container
     """
+
     def __init__(
-            self, 
-            repository: str = "nvcr.io/nvidia/tritonserver", 
+            self,
+            repository: str = "nvcr.io/nvidia/tritonserver",
             tag: str = "24.01-py3",
-            name: str = "tritonserver", 
+            name: str = "tritonserver",
             with_gpus: bool = True,
             volume_mapping: list[VolumeMapping] | None = None,
             command: str = DEFAULT_TRITON_CONTAINER_COMMAND,
-            **kwargs        
-            ) -> None:
+            **kwargs
+    ) -> None:
         image = f"{repository}:{tag}"
 
         super().__init__(image, **kwargs)
@@ -49,11 +51,11 @@ class TritonContainer(DockerContainer):
         if volume_mapping:
             for mapping in volume_mapping:
                 self.with_volume_mapping(
-                    host=mapping["host"], 
-                    container=mapping["container"], 
+                    host=mapping["host"],
+                    container=mapping["container"],
                     mode=mapping.get("mode", "ro")
                 )
-            
+
         if with_gpus:
             self.with_kwargs(
                 device_requests=[docker.types.DeviceRequest(count=-1, capabilities=[["gpu"]])]
@@ -70,7 +72,7 @@ class TritonContainer(DockerContainer):
                 port = TRITON_METRICS_PORT
             case _:
                 raise ValueError(f"Unknown port name {port_name}")
-            
+
         return f"{self.get_container_host_ip()}:{self.get_exposed_port(port)}"
 
     def get_client(self) -> tritonhttpclient.InferenceServerClient:
@@ -92,7 +94,6 @@ class TritonContainer(DockerContainer):
         if not triton_client.is_server_ready():
             raise tritonhttpclient.InferenceServerException("Server not ready yet.")
 
-        
     def start(self) -> "TritonContainer":
         super().start()
         self.readiness_probe()
