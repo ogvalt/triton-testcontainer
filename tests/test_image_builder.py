@@ -59,5 +59,5 @@ def test_context_manager(tmp_path):
                   .cmd("echo", predicate)
                   .build())
 
-    with (ImageBuilder(reuse=False).from_string(context=str(tmp_path), string_dockerfile=dockerfile).ctx_manager()) as image:
+    with ImageBuilder(reuse=False).from_string(context=str(tmp_path), string_dockerfile=dockerfile).ctx_manager() as image:
         assert_container_run(image.tags[0], predicate)

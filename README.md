@@ -12,7 +12,12 @@ pip3 install git+https://github.com/ogvalt/triton-testcontainer.git@v0.5.0
 
 # Usage
 
-This package provides class `TritonContainer` that could be used as part of `pytest` `fixture` like in example below:
+This package provides several functions:
+    - triton container (class `TritonContainer`)
+    - dockerfile builder (class `DockerfileBuilder`)
+    - docker image builder (class `ImageBuilder`)
+    
+## Examples
 
 ```python
 import pytest
@@ -45,6 +50,23 @@ def test_example_two():
     # use context manager to run container on __enter__ and stop it on __exit__
     with tritoncontainer.TritonContainer(with_gpus=True, volume_mapping=maps, command=cmd) as service:  
         triton_client = service.get_client()
-        assert True
-        
+        assert True     
 ```
+
+```python
+from testcontainers.core.container import DockerContainer
+from testcontainers.core.waiting_utils import wait_for_logs
+
+from triton_testcontainer import ImageBuilder, DockerfileBuilder
+
+
+def test_example_three():
+    dockerfile = (DockerfileBuilder() \
+                  .from_("ubuntu:20.04") \
+                  .cmd("echo", "hello world")
+                  .build())
+
+
+    with ImageBuilder("hello-world").from_string(context=".", string_dockerfile=dockerfile).ctx_manager() as image:
+        with DockerContainer(image.tags[0]) as container:
+            delay = wait_for_logs(container, "hello world", 30)
