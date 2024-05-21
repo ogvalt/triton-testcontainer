@@ -9,7 +9,6 @@ class DockerfileBuilder:
     References: https://docs.docker.com/reference/dockerfile/
 
     >>> print(DockerfileBuilder() \
-    .syntax() \
     .arg(name="BASE_IMAGE") \
     .from_('${BASE_IMAGE}', as_name="stage") \
     .env(key="DEBIAN_FRONTEND", value="noninteractive") \
@@ -30,10 +29,31 @@ class DockerfileBuilder:
     SYNTAX_PARSER_DIRECTIVE = "# syntax="
     ESCAPE_DIRECTIVE = "# escape="
 
-    def __init__(self) -> None:
+    def __init__(self, ensure_syntax: bool = True) -> None:
         self._dockerfile: list[str] = []
+        self._ensure_syntax = ensure_syntax
 
     def build(self) -> str:
+        """
+        Build multiline  string  of  dockerfile
+
+        >>> DockerfileBuilder().build()
+        '# syntax=docker/dockerfile:1'
+        >>> DockerfileBuilder().syntax("tests").build()
+        '# syntax=tests'
+        >>> DockerfileBuilder(ensure_syntax=False).from_("ubuntu:20.04").build()
+        'FROM ubuntu:20.04'
+        >>> DockerfileBuilder(ensure_syntax=False).syntax("tests").build()
+        '# syntax=tests'
+        """
+        is_syntax_present = False
+
+        if len(self._dockerfile) > 0:
+            is_syntax_present = self._dockerfile[0].startswith(self.SYNTAX_PARSER_DIRECTIVE)
+
+        if self._ensure_syntax and not is_syntax_present:
+            self.syntax()
+
         return """{}""".format("\n".join(self._dockerfile))
 
     def syntax(self, remote_image_reference: str = "docker/dockerfile:1") -> "DockerfileBuilder":
@@ -70,7 +90,7 @@ class DockerfileBuilder:
     def append_user_instruction(self, user_instruction: str) -> "DockerfileBuilder":
         """Append user instuction
 
-        >>> DockerfileBuilder().append_user_instruction(user_instruction="FROM ubuntu:20.04 AS stage").build()
+        >>> DockerfileBuilder(ensure_syntax=False).append_user_instruction(user_instruction="FROM ubuntu:20.04 AS stage").build()
         'FROM ubuntu:20.04 AS stage'
 
         """
@@ -92,34 +112,34 @@ class DockerfileBuilder:
             ) -> "DockerfileBuilder":
         """Append ADD instruction
 
-        >>> DockerfileBuilder().add(src="file.txt", dest="/file.txt").build()
+        >>> DockerfileBuilder(ensure_syntax=False).add(src="file.txt", dest="/file.txt").build()
         'ADD file.txt /file.txt'
 
-        >>> DockerfileBuilder().add(src="file.txt", dest="/file.txt", keep_git_dir=True).build()
+        >>> DockerfileBuilder(ensure_syntax=False).add(src="file.txt", dest="/file.txt", keep_git_dir=True).build()
         'ADD --keep-git-dir=true file.txt /file.txt'
 
-        >>> DockerfileBuilder().add(src="file.txt", dest="/file.txt", checksum="sha256:123").build()
+        >>> DockerfileBuilder(ensure_syntax=False).add(src="file.txt", dest="/file.txt", checksum="sha256:123").build()
         'ADD --checksum=sha256:123 file.txt /file.txt'
 
-        >>> DockerfileBuilder().add(src="file.txt", dest="/file.txt", chown="user:group").build()
+        >>> DockerfileBuilder(ensure_syntax=False).add(src="file.txt", dest="/file.txt", chown="user:group").build()
         'ADD --chown=user:group file.txt /file.txt'
 
-        >>> DockerfileBuilder().add(src="file.txt", dest="/file.txt", chmod="777").build()
+        >>> DockerfileBuilder(ensure_syntax=False).add(src="file.txt", dest="/file.txt", chmod="777").build()
         'ADD --chmod=777 file.txt /file.txt'
 
-        >>> DockerfileBuilder().add(src="file.txt", dest="/file.txt", link=True).build()
+        >>> DockerfileBuilder(ensure_syntax=False).add(src="file.txt", dest="/file.txt", link=True).build()
         'ADD --link file.txt /file.txt'
 
-        >>> DockerfileBuilder().add(src="file.txt", dest="/file.txt", exclude=["file.txt"]).build()
+        >>> DockerfileBuilder(ensure_syntax=False).add(src="file.txt", dest="/file.txt", exclude=["file.txt"]).build()
         'ADD --exclude=file.txt file.txt /file.txt'
 
-        >>> DockerfileBuilder().add(src="file.txt", dest="/file.txt", exclude=["file.txt", ".git"]).build()
+        >>> DockerfileBuilder(ensure_syntax=False).add(src="file.txt", dest="/file.txt", exclude=["file.txt", ".git"]).build()
         'ADD --exclude=file.txt --exclude=.git file.txt /file.txt'
 
-        >>> DockerfileBuilder().add(user_directive="--chown=user:group --chmod=644 files* /somedir/").build()
+        >>> DockerfileBuilder(ensure_syntax=False).add(user_directive="--chown=user:group --chmod=644 files* /somedir/").build()
         'ADD --chown=user:group --chmod=644 files* /somedir/'
 
-        >>> DockerfileBuilder().add(src="file.txt", dest="/file.txt", keep_git_dir=True, \
+        >>> DockerfileBuilder(ensure_syntax=False).add(src="file.txt", dest="/file.txt", keep_git_dir=True, \
             checksum="sha256:123", chown="user:group", chmod="777", link=True, exclude=["file.txt"]).build()
         'ADD --keep-git-dir=true --checksum=sha256:123 --chown=user:group --chmod=777 --link --exclude=file.txt file.txt /file.txt'
         """
@@ -165,10 +185,10 @@ class DockerfileBuilder:
     def arg(self, name: str, default: str = "") -> "DockerfileBuilder":
         """Append ARG instruction
 
-        >>> DockerfileBuilder().arg(name="VAR").build()
+        >>> DockerfileBuilder(ensure_syntax=False).arg(name="VAR").build()
         'ARG VAR'
 
-        >>> DockerfileBuilder().arg(name="VAR", default="value").build()
+        >>> DockerfileBuilder(ensure_syntax=False).arg(name="VAR", default="value").build()
         'ARG VAR=value'
 
         """
@@ -182,7 +202,7 @@ class DockerfileBuilder:
     def cmd(self, executable: str = "", *params) -> "DockerfileBuilder":
         """Append CMD instruction
 
-        >>> DockerfileBuilder().cmd("echo", "hello world").build()
+        >>> DockerfileBuilder(ensure_syntax=False).cmd("echo", "hello world").build()
         'CMD echo hello world'
 
         """
@@ -211,34 +231,34 @@ class DockerfileBuilder:
              ) -> "DockerfileBuilder":
         """Append COPY instruction
 
-        >>> DockerfileBuilder().copy(src="file.txt", dest="/file.txt").build()
+        >>> DockerfileBuilder(ensure_syntax=False).copy(src="file.txt", dest="/file.txt").build()
         'COPY file.txt /file.txt'
 
-        >>> DockerfileBuilder().copy(src="file.txt", dest="/file.txt", from_="stage").build()
+        >>> DockerfileBuilder(ensure_syntax=False).copy(src="file.txt", dest="/file.txt", from_="stage").build()
         'COPY --from=stage file.txt /file.txt'
 
-        >>> DockerfileBuilder().copy(src="file.txt", dest="/file.txt", parents=True).build()
+        >>> DockerfileBuilder(ensure_syntax=False).copy(src="file.txt", dest="/file.txt", parents=True).build()
         'COPY --parents file.txt /file.txt'
 
-        >>> DockerfileBuilder().copy(src="file.txt", dest="/file.txt", chown="user:group").build()
+        >>> DockerfileBuilder(ensure_syntax=False).copy(src="file.txt", dest="/file.txt", chown="user:group").build()
         'COPY --chown=user:group file.txt /file.txt'
 
-        >>> DockerfileBuilder().copy(src="file.txt", dest="/file.txt", chmod="777").build()
+        >>> DockerfileBuilder(ensure_syntax=False).copy(src="file.txt", dest="/file.txt", chmod="777").build()
         'COPY --chmod=777 file.txt /file.txt'
 
-        >>> DockerfileBuilder().copy(src="file.txt", dest="/file.txt", link=True).build()
+        >>> DockerfileBuilder(ensure_syntax=False).copy(src="file.txt", dest="/file.txt", link=True).build()
         'COPY --link file.txt /file.txt'
 
-        >>> DockerfileBuilder().copy(src="file.txt", dest="/file.txt", exclude=["file.txt"]).build()
+        >>> DockerfileBuilder(ensure_syntax=False).copy(src="file.txt", dest="/file.txt", exclude=["file.txt"]).build()
         'COPY --exclude=file.txt file.txt /file.txt'
 
-        >>> DockerfileBuilder().copy(src="file.txt", dest="/file.txt", exclude=["file.txt", ".git"]).build()
+        >>> DockerfileBuilder(ensure_syntax=False).copy(src="file.txt", dest="/file.txt", exclude=["file.txt", ".git"]).build()
         'COPY --exclude=file.txt --exclude=.git file.txt /file.txt'
 
-        >>> DockerfileBuilder().copy(user_directive="--chown=user:group --chmod=644 files* /somedir/").build()
+        >>> DockerfileBuilder(ensure_syntax=False).copy(user_directive="--chown=user:group --chmod=644 files* /somedir/").build()
         'COPY --chown=user:group --chmod=644 files* /somedir/'
 
-        >>> DockerfileBuilder().copy(src="file.txt", dest="/file.txt", from_="stage", \
+        >>> DockerfileBuilder(ensure_syntax=False).copy(src="file.txt", dest="/file.txt", from_="stage", \
             chown="user:group", chmod="777", link=True, parents=True, exclude=["file.txt"]).build()
         'COPY --from=stage --chown=user:group --chmod=777 --link --parents --exclude=file.txt file.txt /file.txt'
         """
@@ -284,7 +304,7 @@ class DockerfileBuilder:
     def entrypoint(self, executable: str = "", *params) -> "DockerfileBuilder":
         """Append ENTRYPOINT instruction
 
-        >>> DockerfileBuilder().entrypoint("echo", "hello world").build()
+        >>> DockerfileBuilder(ensure_syntax=False).entrypoint("echo", "hello world").build()
         'ENTRYPOINT echo hello world'
 
         """
@@ -303,10 +323,10 @@ class DockerfileBuilder:
     def env(self, key: str = "", value: str = "", user_directive: str = "") -> "DockerfileBuilder":
         """Append ENV instruction
 
-        >>> DockerfileBuilder().env(key="key", value="value").build()
+        >>> DockerfileBuilder(ensure_syntax=False).env(key="key", value="value").build()
         'ENV key=value'
 
-        >>> DockerfileBuilder().env(user_directive="key1=value1 key2=value2").build()
+        >>> DockerfileBuilder(ensure_syntax=False).env(user_directive="key1=value1 key2=value2").build()
         'ENV key1=value1 key2=value2'
 
         """
@@ -325,10 +345,10 @@ class DockerfileBuilder:
     def expose(self, port: int | str, protocol: str = "") -> "DockerfileBuilder":
         """Append EXPOSE instruction
 
-        >>> DockerfileBuilder().expose(port=80).build()
+        >>> DockerfileBuilder(ensure_syntax=False).expose(port=80).build()
         'EXPOSE 80'
 
-        >>> DockerfileBuilder().expose(port=80, protocol="tcp").build()
+        >>> DockerfileBuilder(ensure_syntax=False).expose(port=80, protocol="tcp").build()
         'EXPOSE 80/tcp'
 
         """
@@ -350,10 +370,10 @@ class DockerfileBuilder:
               ) -> "DockerfileBuilder":
         """Append FROM instruction
 
-        >>> DockerfileBuilder().from_(image="ubuntu:20.04", platform="aarch64", as_name="stage").build()
+        >>> DockerfileBuilder(ensure_syntax=False).from_(image="ubuntu:20.04", platform="aarch64", as_name="stage").build()
         'FROM --platform=aarch64 ubuntu:20.04 AS stage'
 
-        >>> DockerfileBuilder().from_(user_directive="--platform=aarch64 ubuntu:20.04 AS stage").build()
+        >>> DockerfileBuilder(ensure_syntax=False).from_(user_directive="--platform=aarch64 ubuntu:20.04 AS stage").build()
         'FROM --platform=aarch64 ubuntu:20.04 AS stage'
 
         """
@@ -392,13 +412,13 @@ class DockerfileBuilder:
                     ) -> "DockerfileBuilder":
         """Append HEALTHCHECK instruction
 
-        >>> DockerfileBuilder().healthcheck(disable=True).build()
+        >>> DockerfileBuilder(ensure_syntax=False).healthcheck(disable=True).build()
         'HEALTHCHECK NONE'
 
-        >>> DockerfileBuilder().healthcheck(command="CMD curl -f http://localhost/ || exit 1", interval="60s", timeout="70s", start_period="80s", retries=3).build()
+        >>> DockerfileBuilder(ensure_syntax=False).healthcheck(command="CMD curl -f http://localhost/ || exit 1", interval="60s", timeout="70s", start_period="80s", retries=3).build()
         'HEALTHCHECK --interval=60s --timeout=70s --start-period=80s --retries=3 CMD curl -f http://localhost/ || exit 1'
 
-        >>> DockerfileBuilder().healthcheck(user_directive="--interval=5m --timeout=3s CMD curl -f http://localhost/ || exit 1").build()
+        >>> DockerfileBuilder(ensure_syntax=False).healthcheck(user_directive="--interval=5m --timeout=3s CMD curl -f http://localhost/ || exit 1").build()
         'HEALTHCHECK --interval=5m --timeout=3s CMD curl -f http://localhost/ || exit 1'
 
         """
@@ -437,10 +457,10 @@ class DockerfileBuilder:
     def label(self, key: str = "", value: str = "", user_directive: str = "") -> "DockerfileBuilder":
         """Append LABEL instruction
 
-        >>> DockerfileBuilder().label(key="version", value="1.0.0").build()
+        >>> DockerfileBuilder(ensure_syntax=False).label(key="version", value="1.0.0").build()
         'LABEL version=1.0.0'
 
-        >>> DockerfileBuilder().label(user_directive='multi.label1="value1" milti.label2="value2"').build()
+        >>> DockerfileBuilder(ensure_syntax=False).label(user_directive='multi.label1="value1" milti.label2="value2"').build()
         'LABEL multi.label1="value1" milti.label2="value2"'
 
         """
@@ -460,7 +480,7 @@ class DockerfileBuilder:
     def maintainer(self, name: str) -> "DockerfileBuilder":
         """Append MAINTAINER instruction
 
-        >>> DockerfileBuilder().maintainer(name="oleksandr").build()
+        >>> DockerfileBuilder(ensure_syntax=False).maintainer(name="oleksandr").build()
         'MAINTAINER oleksandr'
 
         """
@@ -473,7 +493,7 @@ class DockerfileBuilder:
     def onbuild(self, user_directive: str) -> "DockerfileBuilder":
         """Append ONBUILD instruction
 
-        >>> DockerfileBuilder().onbuild("RUN /usr/local/bin/python-build --dir /app/src").build()
+        >>> DockerfileBuilder(ensure_syntax=False).onbuild("RUN /usr/local/bin/python-build --dir /app/src").build()
         'ONBUILD RUN /usr/local/bin/python-build --dir /app/src'
 
         """
@@ -490,22 +510,22 @@ class DockerfileBuilder:
             ) -> "DockerfileBuilder":
         """Append RUN instruction
 
-        >>> DockerfileBuilder().run("echo", "hello world", mount="type=bind,source=/tmp,target=/tmp").build()
+        >>> DockerfileBuilder(ensure_syntax=False).run("echo", "hello world", mount="type=bind,source=/tmp,target=/tmp").build()
         'RUN --mount=type=bind,source=/tmp,target=/tmp echo hello world'
 
-        >>> DockerfileBuilder().run("echo", "hello world", network="host").build()
+        >>> DockerfileBuilder(ensure_syntax=False).run("echo", "hello world", network="host").build()
         'RUN --network=host echo hello world'
 
-        >>> DockerfileBuilder().run("echo", "hello world", security="insecure").build()
+        >>> DockerfileBuilder(ensure_syntax=False).run("echo", "hello world", security="insecure").build()
         'RUN --security=insecure echo hello world'
 
-        >>> DockerfileBuilder().run("echo", "hello world", security="insecure", mount="type=bind,source=/tmp,target=/tmp").build()
+        >>> DockerfileBuilder(ensure_syntax=False).run("echo", "hello world", security="insecure", mount="type=bind,source=/tmp,target=/tmp").build()
         'RUN --mount=type=bind,source=/tmp,target=/tmp --security=insecure echo hello world'
 
-        >>> DockerfileBuilder().run(user_directive="echo hello world").build()
+        >>> DockerfileBuilder(ensure_syntax=False).run(user_directive="echo hello world").build()
         'RUN echo hello world'
 
-        >>> DockerfileBuilder().run("cat", user_directive="echo hello world").build()
+        >>> DockerfileBuilder(ensure_syntax=False).run("cat", user_directive="echo hello world").build()
         'RUN echo hello world'
 
         """
@@ -538,10 +558,10 @@ class DockerfileBuilder:
     def shell(self, executable: str, parameters: list[str]) -> "DockerfileBuilder":
         """Append SHELL instruction
 
-        >>> DockerfileBuilder().shell(executable="/bin/bash", parameters=["-c"]).build()
+        >>> DockerfileBuilder(ensure_syntax=False).shell(executable="/bin/bash", parameters=["-c"]).build()
         'SHELL ["/bin/bash", "-c"]'
 
-        >>> DockerfileBuilder().shell(executable="cmd", parameters=["/S", "/C"]).build()
+        >>> DockerfileBuilder(ensure_syntax=False).shell(executable="cmd", parameters=["/S", "/C"]).build()
         'SHELL ["cmd", "/S", "/C"]'
 
         """
@@ -559,10 +579,10 @@ class DockerfileBuilder:
     def stopsignal(self, signal: str) -> "DockerfileBuilder":
         """Append STOPSIGNAL instruction
 
-        >>> DockerfileBuilder().stopsignal(signal="SIGKILL").build()
+        >>> DockerfileBuilder(ensure_syntax=False).stopsignal(signal="SIGKILL").build()
         'STOPSIGNAL SIGKILL'
 
-        >>> DockerfileBuilder().stopsignal(signal="9").build()
+        >>> DockerfileBuilder(ensure_syntax=False).stopsignal(signal="9").build()
         'STOPSIGNAL 9'
 
         """
@@ -573,10 +593,10 @@ class DockerfileBuilder:
     def user(self, user: str, group: str = "") -> "DockerfileBuilder":
         """Append USER instruction
 
-        >>> DockerfileBuilder().user(user="root").build()
+        >>> DockerfileBuilder(ensure_syntax=False).user(user="root").build()
         'USER root'
 
-        >>> DockerfileBuilder().user(user="root", group="root").build()
+        >>> DockerfileBuilder(ensure_syntax=False).user(user="root", group="root").build()
         'USER root:root'
 
         """
@@ -590,7 +610,7 @@ class DockerfileBuilder:
     def volume(self, name: str) -> "DockerfileBuilder":
         """Append VOLUME instruction
 
-        >>> DockerfileBuilder().volume(name="data").build()
+        >>> DockerfileBuilder(ensure_syntax=False).volume(name="data").build()
         'VOLUME data'
 
         """
@@ -601,7 +621,7 @@ class DockerfileBuilder:
     def workdir(self, path: str) -> "DockerfileBuilder":
         """Append WORKDIR instruction
 
-        >>> DockerfileBuilder().workdir(path="/path/to/workdir").build()
+        >>> DockerfileBuilder(ensure_syntax=False).workdir(path="/path/to/workdir").build()
         'WORKDIR /path/to/workdir'
 
         """
