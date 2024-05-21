@@ -14,7 +14,7 @@ This package provides several functions:
 ## Installation
 
 ```bash
-pip3 install git+https://github.com/ogvalt/triton-testcontainer.git@v0.6.0
+pip3 install git+https://github.com/ogvalt/triton-testcontainer.git@v0.6.1
 ```
     
 ## Examples
